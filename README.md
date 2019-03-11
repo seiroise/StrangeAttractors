@@ -1,0 +1,2 @@
+# StrangeAttractors
+いくつかのStrangeAttractorとComputeShaderでの実装。
