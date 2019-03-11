@@ -1,5 +1,5 @@
 # StrangeAttractors
-いくつかのStrangeAttractorとComputeShaderでの実装。
+いくつかのStrangeAttractorと、それらのComputeShaderでの実装。
 
 ## Contents
 
