@@ -1,0 +1,47 @@
+﻿#pragma kernel Emit
+#pragma kernel Iterator
+
+#include "../StrangeAttractor.cginc"
+
+#define THREAD_X 128
+#define THREAD_Y 1
+#define THREAD_Z 1
+
+#define DT 0.065
+
+#define NUMTHREADS [numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+
+RWStructuredBuffer<Params> buf;
+
+float b;
+
+float3 ThomasAttractor(float3 pos)
+{
+	float dxdt = -b * pos.x + sin(pos.y);
+	float dydt = -b * pos.y + sin(pos.z);
+	float dzdt = -b * pos.z + sin(pos.x);
+	return float3(dxdt, dydt, dzdt) * DT;
+}
+
+NUMTHREADS
+void Emit(uint id : SV_DispatchThreadID)
+{
+	Params p = buf[id];
+	p.life = (float)id * 1e-05;
+	p.position = p.emitPos;
+	p.size.x = p.size.y;
+	buf[id] = p;
+}
+
+NUMTHREADS
+void Iterator(uint id : SV_DispatchThreadID)
+{
+	Params p = buf[id];
+	p.life.x += DT;
+	if (p.life.x > 0)
+	{
+		p.velocity = ThomasAttractor(p.position);
+		p.position += p.velocity;
+	}
+	buf[id] = p;
+}

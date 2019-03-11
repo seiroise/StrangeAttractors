@@ -1,0 +1,60 @@
+﻿#pragma kernel Emit
+#pragma kernel Iterator
+
+#include "../StrangeAttractor.cginc"
+
+#define THREAD_X 128
+#define THREAD_Y 1
+#define THREAD_Z 1
+
+#define DT 0.065
+
+#define NUMTHREADS [numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+
+RWStructuredBuffer<Params> buf;
+
+float a;
+float b;
+float c;
+float d;
+
+float3 CliffordAttractor(float3 pos)
+{
+	return float3
+	(
+		sin(a * pos.y) + c * cos(a * pos.x),
+		sin(b * pos.x) + d * cos(b * pos.y),
+		0
+	);
+	/*
+	float dxdt = - c * a * sin(a * pos.x);
+	float dydt = d * b * cos(b * pos.y);
+	return float3(dxdt, dydt, 0) * DT;
+	*/
+}
+
+NUMTHREADS
+void Emit(uint id : SV_DispatchThreadID)
+{
+	Params p = buf[id];
+	p.life = (float)id * 1e-05;
+	p.position = p.emitPos;
+	p.size.x = p.size.y;
+	buf[id] = p;
+}
+
+NUMTHREADS
+void Iterator(uint id : SV_DispatchThreadID)
+{
+	Params p = buf[id];
+	p.life.x += DT;
+	if (p.life.x > 0)
+	{
+		/*
+		p.velocity = CliffordAttractor(p.position);
+		p.position += p.velocity;
+		*/
+		p.position = CliffordAttractor(p.position);
+	}
+	buf[id] = p;
+}
